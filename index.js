@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config()
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
@@ -12,15 +13,18 @@ app.use(express.json())
 //pass: N9aytHQ6lRzdLfeN
 
 
-const uri = "mongodb+srv://volunteer1:N9aytHQ6lRzdLfeN@cluster0.dxklnjh.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.dxklnjh.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 async function run() {
     try {
         await client.connect();
         const serviceCollection = client.db("volunteers").collection("services");
-        const service = { name: 'animal shelter' };
-        const result = await serviceCollection.insertOne(service);
-        console.log(`user inserted with id ${result.insertedId}`)
+        app.get('/service', async (req, res) => {
+            const query = {};
+            const cursor = serviceCollection.find(query);
+            const services = await cursor.toArray();
+            res.send(services);
+        })
     }
     finally {
         // await client.close();
